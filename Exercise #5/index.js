@@ -30,7 +30,7 @@ app.use(cors());
 
 // Routes
 app.get('/', (req, res) => {
-  res.send('MIDDLEWARE');
+  res.send('Exercise #5 MIDDLEWARE');
 });
 
 // Route for file upload

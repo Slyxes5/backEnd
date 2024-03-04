@@ -28,6 +28,17 @@ app.use(express.static('public'));
 // Middleware for handling CORS
 app.use(cors());
 
+app.post('/login', (req, res) => {
+  const {username, password} = req.body
+  req.send({
+    status: success,
+    data:{
+      username: username,
+      password: password
+    }
+  })
+});
+
 // Routes
 app.get('/', (req, res) => {
   res.send('Exercise #5 MIDDLEWARE');

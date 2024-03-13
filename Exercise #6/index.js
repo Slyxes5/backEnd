@@ -7,6 +7,7 @@ const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 const users = require('./users');
+const db= require("./db");
 
 const app = express();
 const port = 3000;
@@ -28,6 +29,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
+
 // Routes
 // GET: /users
 app.get('/users', (req, res) => {
@@ -44,13 +46,111 @@ app.get('/users/:name', (req, res) => {
   res.json(user);
 });
 
+app.get('/students', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM students');
+    res.status(200).json({
+      status : "success",
+      data : result.rows,
+    })
+    
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+app.post("/students", async (req, res) => {
+  const { name, address } = req.body;
+  try {
+    const result = await db.query(
+      `INSERT into students (name, address) values ('${name}', '${address}')`
+    );
+    res.status(200).json({
+      status: "success",
+      message: "data berhasil dimasukan",
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+// Update Student by ID
+app.put("/students/:id", async (req, res) => {
+  const { id } = req.params;
+  const { name, address } = req.body;
+  try {
+    const result = await db.query(
+      `UPDATE students SET name = '${name}', address = '${address}' WHERE id = ${id}`
+    );
+    if (result.rowCount === 0) {
+      return res.status(404).json({
+        status: "error",
+        message: "Student not found",
+      });
+    }
+    res.status(200).json({
+      status: "success",
+      message: "Student updated successfully",
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+// Delete Student by ID
+app.delete("/students/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await db.query(`DELETE FROM students WHERE id = ${id}`);
+    if (result.rowCount === 0) {
+      return res.status(404).json({
+        status: "error",
+        message: "Student not found",
+      });
+    }
+    res.status(200).json({
+      status: "success",
+      message: "Student deleted successfully",
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+// Get student by ID
+app.get("/students/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await db.query(`SELECT * FROM students WHERE id = ${id}`);
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        status: "error",
+        message: "Student not found",
+      });
+    }
+    res.status(200).json({
+      status: "success",
+      data: result.rows[0],
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+
+
 // POST: /users
 app.post('/users', (req, res) => {
   const { id, name } = req.body;
   if (!id || !name) {
     return res.status(400).json({
       status: 'error',
-      message: 'Id and name are required'
+      message: 'masukkan data yang akan diubah'
     });
   }
   const newUser = {
